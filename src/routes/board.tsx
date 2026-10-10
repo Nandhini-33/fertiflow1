@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { LayoutGrid, List, UserPlus, CheckCircle2, Sparkles } from "lucide-react";
+import { LayoutGrid, List, UserPlus, CheckCircle2, Sparkles, Clock } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -54,12 +54,12 @@ export function useTaskFilters(tasks: Task[], now: number) {
   }, [tasks, q, dept, status, prio, sort, now, s]);
 
   const controls = (
-    <div className="card-surface flex flex-wrap gap-2 p-3 rounded-xl border">
+    <div className="card-surface flex flex-wrap items-center gap-2.5 p-3 sm:p-3.5 rounded-xl border">
       <Input
         placeholder="Search patient ID, name, treatment…"
         value={q}
         onChange={(e) => setQ(e.target.value)}
-        className="w-56 text-xs"
+        className="w-full sm:w-56 text-xs"
       />
       <F
         v={dept}
@@ -108,7 +108,7 @@ export function useTaskFilters(tasks: Task[], now: number) {
 function F({ v, set, opts, label }: { v: string; set: (v: string) => void; opts: [string, string][]; label: string }) {
   return (
     <Select value={v} onValueChange={set}>
-      <SelectTrigger className="w-44 text-xs" aria-label={label}>
+      <SelectTrigger className="w-full sm:w-auto sm:min-w-36 text-xs" aria-label={label}>
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
@@ -139,7 +139,7 @@ function Board() {
   const completedPatients = s.patients.filter((p) => p.status === "completed");
 
   return (
-    <div className="space-y-5">
+    <div className="w-full min-w-0 space-y-5">
       <PageHeader
         title="Workflow Board"
         desc="Six columns track each patient's active step with real-time automatic handover across departments."
@@ -190,7 +190,7 @@ function Board() {
 
       {/* COMPLETED PATIENTS HERO STRIP (WHEN TOGGLED) */}
       {showCompleted && (
-        <div className="rounded-2xl border border-success/30 bg-success-soft/30 p-4 space-y-3">
+        <div className="rounded-2xl border border-success/30 bg-success-soft/30 p-4 space-y-3 min-w-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-sm font-bold text-success">
               <CheckCircle2 className="h-5 w-5" />
@@ -203,29 +203,31 @@ function Board() {
 
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {completedPatients.map((p) => (
-              <div key={p.id} className="card-surface rounded-xl border border-success/40 p-3.5 text-xs space-y-2">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1.5">
-                    <span className="font-mono font-bold text-sm">{p.id}</span>
-                    <span className="rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary">
+              <div key={p.id} className="card-surface rounded-xl border border-success/40 p-3.5 text-xs space-y-2 min-w-0 overflow-hidden">
+                <div className="flex items-center justify-between gap-1.5 min-w-0">
+                  <div className="flex items-center gap-1.5 min-w-0 flex-1 truncate">
+                    <span className="font-mono font-bold text-sm shrink-0">{p.id}</span>
+                    <span className="rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary truncate max-w-[120px]" title={p.treatment}>
                       {p.treatment}
                     </span>
                   </div>
                   {/* GREEN TASK COMPLETED BADGE */}
-                  <span className="flex items-center gap-1 rounded-full bg-success/15 px-2 py-0.5 text-[10px] font-bold text-success border border-success/30">
-                    <CheckCircle2 className="h-3 w-3" />
+                  <span className="flex items-center gap-1 rounded-full bg-success/15 px-2 py-0.5 text-[10px] font-bold text-success border border-success/30 shrink-0">
+                    <CheckCircle2 className="h-3 w-3 shrink-0" />
                     Task completed
                   </span>
                 </div>
 
-                <div className="font-semibold text-foreground">{p.label} ({p.age}y)</div>
-                <p className="text-[11px] text-muted-foreground leading-relaxed">
+                <div className="font-semibold text-foreground truncate" title={`${p.label} (${p.age}y)`}>
+                  {p.label} ({p.age}y)
+                </div>
+                <p className="text-[11px] text-muted-foreground leading-relaxed break-words line-clamp-2">
                   Case finalized. All 6 clinical stages successfully concluded and post-procedure follow-up confirmed.
                 </p>
 
-                <div className="flex items-center justify-between text-[11px] text-muted-foreground pt-1 border-t">
+                <div className="flex items-center justify-between text-[11px] text-muted-foreground pt-1 border-t border-border/40 min-w-0">
                   <span>Closed: {p.completedAt ? fmtTime(p.completedAt) : "Today"}</span>
-                  <Link to="/patients/$patientId" params={{ patientId: p.id }} className="font-semibold text-primary hover:underline">
+                  <Link to="/patients/$patientId" params={{ patientId: p.id }} className="font-semibold text-primary hover:underline shrink-0">
                     View timeline →
                   </Link>
                 </div>
@@ -237,42 +239,73 @@ function Board() {
 
       {/* 6 STAGES KANBAN BOARD */}
       {view === "board" ? (
-        <div className="grid gap-4 overflow-x-auto pb-4 md:grid-cols-3 xl:grid-cols-6">
-          {order.map((d, index) => {
-            const col = filtered.filter((t) => t.deptId === d);
-            const deptObj = s.departments.find((x) => x.id === d);
+        <div className="w-full min-w-0">
+          <div className="w-full overflow-x-auto pb-5 pt-1 kanban-scroll rounded-2xl focus:outline-none">
+            <div className="flex gap-4 min-w-max items-start pb-1">
+              {order.map((d, index) => {
+                const col = filtered.filter((t) => t.deptId === d);
+                const deptObj = s.departments.find((x) => x.id === d);
 
-            return (
-              <div key={d} className="min-w-64 rounded-2xl bg-muted/60 p-3 flex flex-col">
-                <div className="mb-3 flex items-center justify-between border-b pb-2">
-                  <div>
-                    <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                      Stage {index + 1}
+                return (
+                  <div
+                    key={d}
+                    className="w-[300px] min-w-[300px] max-w-[300px] shrink-0 rounded-2xl bg-muted/40 dark:bg-muted/20 border border-border/80 p-3.5 flex flex-col shadow-xs"
+                  >
+                    {/* Stage Header */}
+                    <div className="mb-3 border-b border-border/80 pb-2.5 space-y-1.5 min-w-0">
+                      <div className="flex items-start justify-between gap-2 min-w-0">
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-primary">
+                            <span className="inline-block h-1.5 w-1.5 rounded-full bg-primary shrink-0" />
+                            <span>Stage {index + 1} of 6</span>
+                          </div>
+                          <h3 className="mt-0.5 text-sm font-bold text-foreground truncate" title={deptName(s, d)}>
+                            {deptName(s, d)}
+                          </h3>
+                        </div>
+                        <div className="flex items-center gap-1 shrink-0">
+                          <span
+                            className="inline-flex items-center justify-center min-w-6 h-6 px-2 rounded-full bg-card text-xs font-bold text-foreground border border-border/70 shadow-xs"
+                            title={`${col.length} active patient${col.length !== 1 ? "s" : ""}`}
+                          >
+                            {col.length}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Sub-line: Target time & Assigned staff */}
+                      <div className="flex items-center justify-between gap-2 text-[11px] text-muted-foreground pt-0.5 min-w-0">
+                        <span className="flex items-center gap-1 font-medium truncate" title={`Target turnaround: ${deptObj?.thresholdMinutes ?? 60} minutes`}>
+                          <Clock className="h-3 w-3 shrink-0 text-muted-foreground/70" />
+                          <span>Target: {deptObj?.thresholdMinutes ? `${deptObj.thresholdMinutes}m` : "60m"}</span>
+                        </span>
+                        {deptObj?.staff?.length ? (
+                          <span
+                            className="truncate text-[10px] bg-background/80 rounded px-1.5 py-0.5 border border-border/50 shrink-0 font-medium max-w-[110px]"
+                            title={`Staff: ${deptObj.staff.join(", ")}`}
+                          >
+                            {deptObj.staff[0].split(" ")[0]} et al.
+                          </span>
+                        ) : null}
+                      </div>
                     </div>
-                    <h3 className="text-sm font-bold text-foreground">{deptName(s, d)}</h3>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <span className="rounded-full bg-card px-2 py-0.5 text-xs font-bold shadow-xs">
-                      {col.length}
-                    </span>
-                  </div>
-                </div>
 
-                <div className="text-[10px] text-muted-foreground mb-2 flex items-center justify-between">
-                  <span>Target: {deptObj?.thresholdMinutes}m</span>
-                  <span>{deptObj?.staff[0]?.split(" ")[0]} et al.</span>
-                </div>
-
-                <div className="space-y-3 flex-1 overflow-y-auto max-h-[70vh]">
-                  {col.length ? (
-                    col.map((t) => <TaskCard key={t.id} task={t} now={now} onOpen={setOpen} />)
-                  ) : (
-                    <Empty>No active tasks</Empty>
-                  )}
-                </div>
-              </div>
-            );
-          })}
+                    {/* Patient Cards Stack */}
+                    <div className="space-y-3 flex-1 overflow-y-auto max-h-[calc(100vh-270px)] min-h-[160px] pr-1 kanban-scroll">
+                      {col.length ? (
+                        col.map((t) => <TaskCard key={t.id} task={t} now={now} onOpen={setOpen} />)
+                      ) : (
+                        <div className="h-28 flex flex-col items-center justify-center rounded-xl border border-dashed border-border/70 p-4 text-center">
+                          <p className="text-xs text-muted-foreground/80 font-medium">No active tasks</p>
+                          <span className="text-[10px] text-muted-foreground/60 mt-0.5">Stage clear</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         </div>
       ) : (
         <div className="card-surface overflow-x-auto rounded-xl border">

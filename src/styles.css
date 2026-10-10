@@ -143,3 +143,29 @@
 
 @keyframes flash-in { from { background-color: color-mix(in oklab, var(--primary) 18%, transparent); } to { background-color: transparent; } }
 @utility animate-flash { animation: flash-in 1.6s ease-out; }
+
+/* Custom scrollbar utility for clean Kanban board horizontal & vertical scrolling */
+.kanban-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklab, var(--primary) 35%, var(--border)) transparent;
+}
+
+.kanban-scroll::-webkit-scrollbar {
+  height: 8px;
+  width: 6px;
+}
+
+.kanban-scroll::-webkit-scrollbar-track {
+  background: color-mix(in oklab, var(--muted) 40%, transparent);
+  border-radius: 9999px;
+}
+
+.kanban-scroll::-webkit-scrollbar-thumb {
+  background: color-mix(in oklab, var(--primary) 30%, var(--border));
+  border-radius: 9999px;
+}
+
+.kanban-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--primary);
+}
+

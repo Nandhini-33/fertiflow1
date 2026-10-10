@@ -278,7 +278,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </Button>
         </header>
 
-        <main className="flex-1 px-4 py-6 md:px-8">
+        <main className="flex-1 min-w-0 max-w-full px-4 py-6 md:px-8">
           {ready ? children : <div className="grid h-64 place-items-center text-sm text-muted-foreground">Loading clinic workflows…</div>}
         </main>
       </div>
